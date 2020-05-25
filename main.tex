@@ -1,0 +1,206 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage{polski}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{mathtools}
+
+\title{STP projekt nr 2}
+\author{Piotr Kostrzeński}
+\date{nr indeksu 300421}
+
+\begin{document}
+
+\maketitle
+
+\section*{Wstęp}
+Zadany obiekt regulacji jest opisany transmitancją:
+\[
+    G(s) = \frac{
+        K_0 e^{-T_0s}
+    }{
+        (T_1s+1)(T_2s+1)
+    }
+\]
+gdzie $K_0 = 3,4, T_0 = 5, T_1 = 1,75, T_2 = 5,51$/
+
+\section*{Zadanie 1}
+W ramach tego zadania wyznaczę transmitancję dyskretną $G(z)$ na podstawie zadanej transmitancji ciągłej $G(s)$. Zastosuję przy tym ekstrapolator zerowego rzędu oraz okres próbkowania $T_p = 0,5s$. Zadaną transmitancję ciągłą można także przedstawić jako:
+\[
+    G(s) = e^{-T_0s} \cdot G_0(s)
+\]
+gdzie:
+\[
+    G_0(s) = \frac{K_0}{(T_1s+1)(T_2s+1)}
+\]
+Transmitancję $G_0(s)$ rozkładam na ułamki proste:
+\begin{align*}
+    G_0(s) & = \frac{K_0}{(T_1s+1)(T_2s+1)} = \frac{\frac{K_0}{T_1T_2}}{(s+\frac{1}{T_1})(s+\frac{1}{T_2})} =  \frac{A}{s+\frac{1}{T_1}} + \frac{B}{s+\frac{1}{T_2}} = \\
+    & = \frac{A(s+\frac{1}{T_2}) + B(s+\frac{1}{T_1})}{(s+\frac{1}{T_1})(s+\frac{1}{T_2})} = \frac{(A+B)s + \frac{A}{T_2} + \frac{B}{T_1}}{(s+\frac{1}{T_1})(s+\frac{1}{T_2})}
+\end{align*}
+
+\noindent
+Przyrównując współczynniki wielomianu w liczniku ułamka otrzymuję układ równań:
+\[
+    \begin{cases}
+        A + B = 0 \\
+        \frac{A}{T_2} + \frac{B}{T_1} = \frac{K_0}{T_1T_2}
+    \end{cases}
+\]
+\[
+    \begin{cases}
+        A + B = 0 \\
+        \frac{AT_1 + BT_2}{T_1T_2} = \frac{K_0}{T_1T_2}
+    \end{cases}
+\]
+\[
+    \begin{cases}
+        A + B = 0 \implies B = - A \\
+        AT_1 + BT_2 = K_0
+    \end{cases}
+\]
+\[ AT_1 - AT_2 = K_0\]
+\[ (T_1 - T_2)A = K_0\]
+\[ A = \frac{K_0}{T_1 - T_2} \]
+\[ B = -A = -\frac{K_0}{T_1 - T_2}\]
+Podsumowując współczynniki:
+\[
+    \begin{cases}
+         A = \frac{K_0}{T_1 - T_2} \\
+         B = -\frac{K_0}{T_1 - T_2}
+    \end{cases}
+\]
+co mi daje:
+\[
+    G_0(s) = \frac{\frac{K_0}{T_1 - T_2}}{s+\frac{1}{T_1}} + \frac{-\frac{K_0}{T_1 - T_2}}{s+\frac{1}{T_2}}
+\]
+Transmitancję ciągłą zamieniam na dyskretną według wzoru:
+\[
+    G_0(z) = \frac{z-1}{z} \cdot Z \left( \frac{G_0(s)}{s} \right)
+\]
+Daje to:
+
+\begin{align*}
+    G_0(z) & = \frac{z-1}{z} \cdot Z \left( \frac{\frac{K_0}{T_1 - T_2}}{s(s+\frac{1}{T_1})} + \frac{-\frac{K_0}{T_1 - T_2}}{s(s+\frac{1}{T_2})} \right) = \\
+    & = \frac{z-1}{z} \cdot Z \left( \frac{T_1K_0}{T_1 - T_2}\frac{\frac{1}{T_1}}{s(s+\frac{1}{T_1})} - \frac{T_2K_0}{T_1 - T_2}\frac{\frac{1}{T_2}}{s(s+\frac{1}{T_2})} \right) = \\
+    & = \frac{z-1}{z} \left[ 
+        \frac{T_1K_0}{T_1 - T_2}\frac{z(1-e^{-\frac{1}{2T_1}})}{(z-1)(z-e^{-\frac{1}{2T_1}})} -
+        \frac{T_2K_0}{T_1 - T_2}\frac{z(1-e^{-\frac{1}{2T_2}})}{(z-1)(z-e^{-\frac{1}{2T_2}})}
+    \right] \\
+    & = \frac{T_1K_0}{T_1 - T_2} \cdot \frac{1-e^{-\frac{1}{2T_1}}}{(z-e^{-\frac{1}{2T_1}})} - \frac{T_2K_0}{T_1 - T_2} \cdot \frac{1-e^{-\frac{1}{2T_2}}}{(z-e^{-\frac{1}{2T_2}})} \\
+    & = \frac{K_0}{T_1 - T_2} \left( \frac{T_1(1-e^{-\frac{1}{2T_1}})}{(z-e^{-\frac{1}{2T_1}})} - \frac{T_2(1-e^{-\frac{1}{2T_2}})}{(z-e^{-\frac{1}{2T_2}})} \right) \\ 
+    & = \frac{K_0}{T_1 - T_2} \cdot
+    \frac{
+        T_1(1-e^{-\frac{1}{2T_1}})(z-e^{-\frac{1}{2T_2}}) -
+        T_2(1-e^{-\frac{1}{2T_2}})(z-e^{-\frac{1}{2T_1}})
+    }{
+        (z-e^{-\frac{1}{2T_1}})(z-e^{-\frac{1}{2T_2}})
+    } \\
+    & = \frac{K_0}{T_1 - T_2} \cdot
+    \frac{
+        \left[T_1(1-e^{-\frac{1}{2T_1}})-T_2(1-e^{-\frac{1}{2T_2}})\right]z -
+        e^{-\frac{1}{2T_1}}T_2(1-e^{-\frac{1}{2T_2}}) - e^{-\frac{1}{2T_2}}T_1(1-e^{-\frac{1}{2T_1}})
+    }{
+        (z-e^{-\frac{1}{2T_1}})(z-e^{-\frac{1}{2T_2}})
+    } 
+\end{align*}
+\noindent
+Ostatecznie:
+\begin{align*}
+    G_0(z) = \frac{K_0}{T_1 - T_2} \cdot
+    \frac{
+        \left[T_1(1-e^{-\frac{1}{2T_1}})-T_2(1-e^{-\frac{1}{2T_2}})\right]z -
+        e^{-\frac{1}{2T_1}}T_2(1-e^{-\frac{1}{2T_2}}) - e^{-\frac{1}{2T_2}}T_1(1-e^{-\frac{1}{2T_1}})
+    }{
+        z^2 - (e^{-\frac{1}{2T_1}} + e^{-\frac{1}{2T_2}})z + e^{-\frac{1}{2T_1}}e^{-\frac{1}{2T_2}}
+    }
+\end{align*}
+
+\noindent
+Po podstawieniu liczb otrzymuję taką transmitancję dyskretną:
+\begin{align*}
+    G_0(z) & = -0,90425 \cdot \frac{
+       (0,43491 - 0,47798)z + 0,35919 - 0,39719 
+    }{
+       z^2 - 1,66473z + 0,68628
+    } \\
+    & = -0,90425 \cdot \frac{
+       -0,04307z - 0,038
+    }{
+       z^2 - 1,66473z + 0,68628
+    } \\ 
+    & = \frac{
+       0,03894z + 0,0343 
+    }{
+       z^2 - 1,66473z + 0,68628
+    }
+\end{align*}
+Otrzymaną transmitancję sprawdziłem także w środowisku MATLAB. Najpierw przekształciłem tranmitancję ciągłą:
+\begin{align*}
+    G_0(s) & = \frac{\frac{K_0}{T_1T_2}}{(s+\frac{1}{T_1})(s+\frac{1}{T_2})} \\
+    & = \frac{\frac{K_0}{T_1T_2}}{s^2+(\frac{1}{T_1} + \frac{1}{T_2})s + \frac{1}{T_1T_2}}
+\end{align*}
+Po podstawieniu liczb:
+\[
+G_0(s) = \frac{0,3526}{s^2+0,7529s + 0,1037}
+\]
+Transmitancję w takiej postaci można w środowisku MATLAB zamienić na transmitancję dyskretną w poniższy sposób:
+\begin{verbatim}
+    H = tf([0.3526], [1 0.7529 0.1037]);
+    Hd = c2d(H, 0.5);
+\end{verbatim}
+Wynik powyższych obliczeń wygląda nastepująco:
+\begin{verbatim}
+    Hd =
+ 
+       0.03895 z + 0.03435
+      ----------------------
+      z^2 - 1.665 z + 0.6863
+\end{verbatim}
+\noindent
+Co potwierdza poprawność wyżej wykonanych obliczeń. Pozostało jeszcze zająć się pominiętym póki co opóźnieniem. Po przyjęciu okresu próbkowania $T_p = 0,5s$ opóźnieniu ciągłemu $e^{-5s}$ odpowiada opóźnienie dyskretne $z^{-10}$. Stąd ostatecznie, transmitancja dyskretna $G(z)$ przyjmuje postać:
+\[
+    G(z) = \frac{
+       0,03894z + 0,0343 
+    }{
+       z^2 - 1,66473z + 0,68628
+    } z^{-10}
+\]
+
+\clearpage \noindent
+Obie transmitancje zostały zaimplementowane w środowisku MATLAB. Nastepnie sprawdzono ich odpowiedzi skokowe. Wyglądają one następująco: \\
+\includegraphics[width=\textwidth]{STP_projekt2_zad1.png}
+
+\noindent
+Jak można zauważyć, transmitancję się praktycznie ze sobą pokrywają (oczywiście biorąc pod uwagę to że jedna jest dyskretna). Dowodzi to poprawności przeprowadzonej dyskretyzacji transmitancji. Współczynnik wzmocnienia statycznego transmitancji można policzyć z poniższych wzorów, dla transmitancji ciągłej i dyskretnej:
+\[
+    K_{stat} = \lim_{s \to 0} G(s), K_{stat} = \lim_{z \to 1} G(z)
+\]
+Stąd, dla transmitancji ciągłej:
+\[
+    K_{stat} = \lim_{s \to 0}  \frac{0,3526}{s^2+0,7529s + 0,1037} e^{-5s} = \frac{0,3526}{0,1037} \approx 3,4
+\]
+i dla dyskretnej:
+\begin{align*}
+    K_{stat} & = \lim_{z \to 1} \frac{
+       0,03894z + 0,0343 
+    }{
+       z^2 - 1,66473z + 0,68628
+    } z^{-10} \\
+    & = \frac{
+       0,03894 + 0,0343 
+    }{
+       1^2 - 1,66473\cdot1 + 0,68628
+    } 1^{-10} = \frac{0,07324}{0.02155} \approx 3,3986 \approx 3,4
+\end{align*}
+
+\noindent
+Obliczone odpowiedzi skokowe są prawie identyczne (błędy związane z zaokrągleniem). Zatem wartości współczynnika wzmocnienia statycznego transmitancji ciągłej i dyskretnej są sobie równe. Można to także zauważyć, na wykresie z odpowiedziami skokowymi. Widać na nim, że odpowiedź skokowa dla obu transmitancji stabilizuje się po pewnym czasie na obliczonych wartościach.
+
+\section*{Zadanie 2}
+
+    
+
+\end{document}
+
