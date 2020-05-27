@@ -136,7 +136,7 @@ Po podstawieniu liczb otrzymuję taką transmitancję dyskretną:
        z^2 - 1,66473z + 0,68628
     }
 \end{align*}
-Otrzymaną transmitancję sprawdziłem także w środowisku MATLAB. Najpierw przekształciłem tranmitancję ciągłą:
+Otrzymaną transmitancję sprawdziłem także w środowisku MATLAB. Najpierw przekształciłem transmitancję ciągłą:
 \begin{align*}
     G_0(s) & = \frac{\frac{K_0}{T_1T_2}}{(s+\frac{1}{T_1})(s+\frac{1}{T_2})} \\
     & = \frac{\frac{K_0}{T_1T_2}}{s^2+(\frac{1}{T_1} + \frac{1}{T_2})s + \frac{1}{T_1T_2}}
@@ -199,8 +199,107 @@ i dla dyskretnej:
 Obliczone odpowiedzi skokowe są prawie identyczne (błędy związane z zaokrągleniem). Zatem wartości współczynnika wzmocnienia statycznego transmitancji ciągłej i dyskretnej są sobie równe. Można to także zauważyć, na wykresie z odpowiedziami skokowymi. Widać na nim, że odpowiedź skokowa dla obu transmitancji stabilizuje się po pewnym czasie na obliczonych wartościach.
 
 \section*{Zadanie 2}
+W tym zadaniu na podstawie transmitancji dyskretnej wyznaczę równanie różnicowe służące do obliczenia wielkości $y(k)$ na podstawie sygnałów wejściowych i wyjściowych z chwil poprzednich o ogólnym wzorze:
+\[
+    y(k) = \sum_{i=1}^{n}b_i y(k-i) + \sum_{i=1}^{m}c_i u(k-i)
+\]
+Transmitancja dyskretna przyjmuje poniższą postać:
+\[
+    G(z) = \frac{Y(z)}{U(z)} = \frac{
+       0,03894z + 0,0343 
+    }{
+       z^2 - 1,66473z + 0,68628
+    } z^{-10}
+\]
+Równanie różnicowe otrzymuję przekształcając powyższe równanie:
+\[
+    \frac{Y(z)}{U(z)}  = \frac{
+       0,03894z + 0,0343 
+    }{
+       z^2 - 1,66473z + 0,68628
+    } z^{-10}
+\]
+\[
+    Y(z)(z^2 - 1,66473z + 0,68628)  = U(z)(0,03894z + 0,0343)z^{-10}
+\]
+\[
+    Y(z)(z^2 - 1,66473z + 0,68628)  = U(z)(0,03894z^{-9} + 0,0343z^{-10})
+\]
+W dziedzinie czasu dyskretnego mam zatem:
+\[
+    y(k+2) - 1,66473y(k+1) + 0,68628y(k) = 0,03894u(k-9) + 0,0343u(k-10)
+\]
+\[
+    y(k+2) = 1,66473y(k+1) - 0,68628y(k) + 0,03894u(k-9) + 0,0343u(k-10)
+\]
+Stosując podstawienie $k := k-2$ otrzymuję:
+\[
+    y(k) = 1,66473y(k-1) - 0,68628y(k-2) + 0,03894u(k-11) + 0,0343u(k-12)
+\]
+Jest to ostateczna forma żądanego równania różnicowego. Pozwala ona na obliczenie wielkości $y(k)$ na podstawie sygnałów wejściowych i wyjściowych z chwil poprzednich.
 
-    
+
+\clearpage
+\section*{Zadanie 3}
+W tym zadaniu, dla danego obiektu dobiorę ciągły regulator PID metodą Zieglera-Nicholsa. Metoda Zieglera-Nicholsa polega na tym, że zerujemy człon całkujący i różniczkujący regulatora PID, a następnie zwiększamy współczynnik proporcjonalny do momentu otrzymania wzmocnienia krytycznego $K_k$. Wzmocnienie krytyczne oznacza, że układ oscyluje ze stałym okresem oraz amplitudą. Okres tych oscylacji oznaczam jako $T_k$. Wtedy, według metody otrzymujemy podane wartości wwspółczynników:
+\begin{align*}
+    K_r = 0,6K_k \\
+    T_i = 0,5T_k \\
+    T_d = 0,12T_k
+\end{align*}
+Kod symulujący wygląda następująco:
+\begin{verbatim}
+    sys_ciagly = tf([0.3526], [1 0.7529 0.1037], 'InputDelay', 5);
+    regulator = pid(Kr, Ki, Kd);
+    sprzezenie_zwrotne = feedback(regulator*sys_ciagly, 1);
+\end{verbatim}
+Symulację zaczynam od $K_r = 1$: \\
+\includegraphics[width=\textwidth]{STP_projekt2_zad3_1.000.png}
+
+\clearpage \noindent
+Obiekt jest wtedy niestabilny, trzeba zatem zmniejszyć wzmocnienie. Zmniejszam jego wartość do $K_r = 0,5$:
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.500.png}
+\end{center}
+
+\noindent
+Teraz układ się stabilizuje na zbyt niskiej wartości (uchyb ustalony) oraz nie ma oscylacji o stałej amplitudzie, zwiększam zatem $K_r$ do $0,75$: 
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.750.png}
+\end{center}
+
+\clearpage \noindent
+Za duże wzmocnienie więc je zmniejszam do $K_r = 0,625$:
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.625.png}
+\end{center}
+Tym razem jest ono za małe, więc je zwiększam do $K_r = 0,650$
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.650.png}
+\end{center}
+
+\clearpage \noindent
+Dalej za małe, zwiększam do $K_r = 0,675$
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.675.png}
+\end{center}
+Wzmocnienie $K_r = 0,675$ okazuje się poprawnym. Układ oscyluje ze stałą amplitudą wokół jednej wartości. Oznacza, to że jest to wzmocnienie krytyczne. Okres oscylacji wynosi 20 sekund. Stąd, mam parametry:
+\begin{align*}
+    K_k = 0,675 \\
+    T_k = 20
+\end{align*}
+Na tej podstawie mogę wyliczyć parametry regulatora:
+\begin{align*}
+    K_r & = 0,6K_k = 0,6 \cdot 0,675 = 0,405 \\
+    T_i & = 0,5T_k = 0,5 \cdot 20 = 10 \\
+    T_d & = 0,12T_k = 0,12 \cdot 20 = 2,4
+\end{align*}
+Mogę także wyznaczyć wartości paremetrów dyskretnego regulatora PID definiowanego poprzez wzory:
+\begin{align*}
+    r_2 & = \frac{KT_d}{T} = \frac{0,405 \cdot 2,4}{0,5} = 1,944 \\
+    r_1 & = K \left( \frac{T}{2T_i}-2\frac{T_d}{T}-1 \right) = 0,405 \cdot (0,025 - 9,6 - 1) = -4,2829 \\
+    r_0 & = K \left( 1 + \frac{T}{2T_i} + \frac{T_d}{T} \right) = 0,405 \cdot ( 1 + 0,025 + 4,8) = 2,3591
+\end{align*}
 
 \end{document}
 
