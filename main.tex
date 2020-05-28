@@ -301,5 +301,296 @@ Mogę także wyznaczyć wartości paremetrów dyskretnego regulatora PID definio
     r_0 & = K \left( 1 + \frac{T}{2T_i} + \frac{T_d}{T} \right) = 0,405 \cdot ( 1 + 0,025 + 4,8) = 2,3591
 \end{align*}
 
+\clearpage \noindent
+Sprawdzam działanie regulatora po zastosowaniu obliczonych parametrów:
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.405.png}
+\end{center}
+Wyjście obiektu ewidentnie dąży do zadanej wartości. Mimo wszystko, jakość regulacji jest dosyć słaba. Wystarczy jednak obniżyć wartości parametru $T_d$ do $T_d=1,2$, co powoduje otrzymanie o wiele lepszej trajektorii:
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.405_2.png}
+\end{center}
+Trajektorię można jeszcze poprawić zwiększając czas całkowania do $T_i = 20$:
+\begin{center}
+    \includegraphics[width=0.93\textwidth]{STP_projekt2_zad3_0.405_3.png}
+\end{center}
+Dzięki temu osiągnięto dużo mniejsze przeregulowanie przy podobnym czasie regulacji. \\
+
+\noindent
+Podsumowując, po dwóch małych poprawkach, za pomocą Metody Zieglera-Nicholsa zostały wyznaczone takie parametry regulatora PID:
+\begin{align*}
+    K_r & = 0,405 \\
+    T_i & = 20 \\
+    T_d & = 1,2
+\end{align*}
+Wtedy też, parametry dyskretnego regulatora będą równe:
+\begin{align*}
+    r_2 & = \frac{KT_d}{T} = \frac{0,405 \cdot 2,4}{0,5} = 1,944 \\
+    r_1 & = K \left( \frac{T}{2T_i}-2\frac{T_d}{T}-1 \right) = 0,405 \cdot (0,0125 - 4,8 - 1) = -2,3439 \\
+    r_0 & = K \left( 1 + \frac{T}{2T_i} + \frac{T_d}{T} \right) = 0,405 \cdot ( 1 + 0,0125 + 2,4) = 1,3821
+\end{align*}
+
+\clearpage
+\section*{Zadanie 4 - regulator PID}
+W tej części zadania zaimplementuję w środowisku MATLAB program do symulacji cyfrowego algorytmu PID. \\
+
+\noindent
+Zaczynam od zdefiniowania współczynników regulatora PID:
+\begin{verbatim}
+    T = 0.5;
+    Kr = 0.405;
+    Ti = 10;
+    Td = 2.4;
+\end{verbatim}
+Oraz według wzorów:
+\begin{align*}
+    r_2 & = \frac{KT_d}{T} \\
+    r_1 & = K \left( \frac{T}{2T_i}-2\frac{T_d}{T}-1 \right) \\
+    r_0 & = K \left( 1 + \frac{T}{2T_i} + \frac{T_d}{T} \right) 
+\end{align*}
+liczę współczynniki dyskretne:
+\begin{verbatim}
+    r2 = (Kr*Td)/T;
+    r1 = Kr*(T/(2*Ti) - 2*(Td/T) - 1);
+    r0 = Kr*(1 + T/(2*Ti) + Td/T);
+\end{verbatim}
+Definiuję też czas trwania symulacji w chwilach dyskretnych $k$:
+\begin{verbatim}
+    kk = 200;
+\end{verbatim}
+Następnie na podstawie tej wielkości definiuję wcześniej wektory wejścia, wyjścia oraz uchybu:
+\begin{verbatim}
+    u = zeros(kk, 1);
+    y = zeros(kk, 1);
+    e = zeros(kk, 1);
+\end{verbatim}
+Potem definiuję wartości zadaną wyjścia obiektu. Na początku jest ono równe 0, po to aby w chwili $k=15$ zmienić się skokowo do wartości 1. Chwila $k$ jest równa 15, ponieważ ze względu na równanie różnicowe układ naprawdę zaczyna działać dla $k>12$. Stąd, dla pewności, żeby wszelkie zmienne zdążyły się dobrze zainicjalizować skok ustawiłem w chwili $k=15$:
+\begin{verbatim}
+    y_zad = zeros(kk, 1);
+    y_zad(15:kk) = 1; 
+\end{verbatim}
+
+\noindent
+Ostatecznie, pozostaje przeprowadzenie samej symulacji. Równanie różnicowe modelu przyjmuje postać:
+\[
+    y(k) = 1,66473y(k-1) - 0,68628y(k-2) + 0,03894u(k-11) + 0,0343u(k-12)
+\]
+Ostatni wyraz jest zależny od $u(k-12)$ dlatego pętlę symulacji zaczynam od $k=13$:
+\begin{verbatim}
+    for k = 13:kk
+        ...
+    end
+\end{verbatim}
+Wewnątrz pętli, na początku według podanego równania różnicowego symuluję zachowanie obiektu:
+\begin{verbatim}
+    y(k) = 1.66473*y(k-1) - 0.68628*y(k-2) 
+                                + 0.03894*u(k-11) + 0.0343*u(k-12);
+\end{verbatim}
+Potem obliczam uchyb regulacji:
+\begin{verbatim}
+    e(k) = y_zad(k)-y(k);
+\end{verbatim}
+Na końcu, według równania różnicowego na sterowanie:
+\[
+    u(k) = r_2e(k-2) + r_1e(k-1) + r_0e(k) + u(k-1)
+\]
+liczę nową wartość sterowania dla obiektu:
+\begin{verbatim}
+    u(k) = r2*e(k-2) + r1*e(k-1) + r0*e(k) + u(k-1);
+\end{verbatim}
+Łącznie, pętla symulacji przedstawia się jak poniżej:
+\begin{verbatim}
+    for k = 13:kk
+        y(k) = 1.66473*y(k-1) - 0.68628*y(k-2) 
+                                    + 0.03894*u(k-11) + 0.0343*u(k-12);
+        e(k) = y_zad(k) - y(k);
+        u(k) = r2*e(k-2) + r1*e(k-1) + r0*e(k) + u(k-1);
+    end
+\end{verbatim}
+
+\noindent
+Na końcu pliku zamieszczony jest także kod generujący wykresy w MATLABie, ale nie służy on symulacji cyfrowego algorytmu PID, dlatego pominę jego treść oraz wyjaśnienie. \\
+
+\noindent
+Używając powyższego kodu przeprowadziłem symulację działania regulatora. Zauważyć można na pewno, że model dyskretny ma troszkę inną specyfikę. Dokładniej, po przeprowadzeniu kilku eksperymentów wzmocnienie krytyczne dla regulatora dyskretnego jest równe $K_k = 0,657$ (w przypadku regulatora ciągłego było to $K_k = 0,675$). Opisana wyżej różnica wynika najprawdopodobniej z przyjętych przeze mnie zaokrągleń. Trajektoria w takim przypadku została przedstawiona na kolejnej stronie.
+
+\clearpage
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad4_pid_1.png}
+\end{center}
+Okres oscylacji jest taki sam jak w przypadku ciągłego regulatora. Po wyznaczeniu prametrów według metody Zieglera-Nicholsa (jedyna różnica to $Kr = 0,3402$) trajektoria wygląda jak poniżej:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad4_pid_2.png}
+\end{center}
+Jak widać, otrzymana jakość regulacji jest akceptowalna, dlatego tak ją zostawiam.
+
+
+\section*{Zadanie 4 - regulator DMC}
+W drugiej części zadania zaimplementuję symulację cyfrowego algorytmu predykcyjnego DMC w wersji analitycznej, bez ograniczeń. \\
+
+\noindent
+Jako że w algorytmie  DMC  obiekt jest  modelowany dyskretnymi  odpowiedziami skokowymi, na samym początku należy przeprowadzić symulację odpowiedzi skokowej dyskretnego modelu:
+\begin{verbatim}
+    sys_dyskretny = tf([0.03894 0.0343], [1 -1.66473 0.68628],
+                                        0.5, 'InputDelay', 10);
+    s = step(sys_dyskretny, 100);
+\end{verbatim}
+
+\noindent
+Na tej podstawie otrzymuję wektor $s$. Następnie definiuję wartości parametrów algorytmu:
+\begin{verbatim}
+    N = 10;
+    Nu = 10;
+    D = 10;
+    lambda = 1;
+\end{verbatim}
+
+\noindent
+Do realizacji algorytmu DMC potrzebna będzie macierz $M^P$ o wymiarowości $N \times D-1$ i strukturze:
+\begin{equation*}
+    M^P = \begin{bmatrix}
+        s_2 - s_1 & s_3 - s_2 & \dots & s_D - S_{D-1} \\
+        s_3 - s_1 & s_4 - s_2 & \dots & s_{D+1} - S_{D-1} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        s_{N+1} - s_1 & s_{N+2} - s_2 & \dots & s_{N+D+1} - S_{D-1} \\
+    \end{bmatrix}
+\end{equation*}
+
+\noindent
+W MATLABie generuję ją w poniższy sposób:
+\begin{verbatim}
+    Mp = zeros(N, D-1);
+    for i = 1:N
+        for j = 1:D-1
+            if i + j < D
+                Mp(i, j) = s(i + j) - s(j);
+            else
+                Mp(i, j) = s(D) - s(j);
+            end
+        end
+    end
+\end{verbatim}
+
+\noindent
+Potrzebna będzie także macierz dynamiczna $M$ o wymiarowości $N \times N_u$ i strukturze:
+\begin{equation*}
+    M^P = \begin{bmatrix}
+        s_1 & 0 & \dots & 0 \\
+        s_2 & s_1 & \dots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        s_N & s_{N-1} & \dots & s_{N+-N_u+1} \\
+    \end{bmatrix}
+\end{equation*}
+
+\clearpage \noindent
+Jej implementacja w środowisku MATLAB przedstawia się poniższo:
+\begin{verbatim}
+    M = zeros(N, Nu);
+    for i = 1:N
+        for j = 1:i
+            if j <= Nu
+                M(i, j) = s(i - j + 1);
+            end
+        end
+    end
+\end{verbatim}
+
+\noindent
+Idąc dalej, do realizacji algorytmu będzie macierz $K$:
+\[
+    K = (M^T \Psi M + \Lambda)^{-1} M^T \Psi
+\]
+gdzie $\Lambda$ to macierz jednostkowa pomnożona przez parametr $\lambda$. Obliczenie macierzy w MATLABie:
+\begin{verbatim}
+    I = eye(Nu);
+    K = (((M')*M + lambda*I)^(-1))*(M');
+\end{verbatim}
+
+\noindent
+Do obliczenia sterowania według prawa regulacji:
+\[
+    \Delta u(k) = k^e (y^{zad}(k) - y(k)) - \sum_{j=1}^{D-1}k_j^u \Delta u(k-j)
+\]
+gdzie
+\[
+    k_j^u = \overline{K}_1 M_j^P
+\]
+\[
+    k^e = \sum_{p=1}^N k_{1, p}
+\]
+\noindent
+potrzebne będą wektory $k^e$ oraz $k^u$. Obliczam je jak poniżej:
+\begin{verbatim}
+    ku = K(1, :)*Mp;
+    ke = sum(K(1, :));
+\end{verbatim}
+
+\noindent
+Dalsza część kodu jest podobna do regulatora PID, na początku inicjalizuję zmienne:
+
+\begin{verbatim}
+    kk = 120;
+    u = zeros(kk, 1);
+    d_upk = zeros(1, D-1);
+    y = zeros(kk, 1);
+    y_zad = zeros(kk, 1);
+    y_zad(15:kk) = 1; 
+    e = zeros(kk, 1);
+\end{verbatim}
+
+\clearpage \noindent
+Następnie piszę główną pętlę symulacji (oprócz obliczania sygnału sterującego):
+\begin{verbatim}
+    for k = 13:kk
+        y(k) = 1.66473*y(k-1) - 0.68628*y(k-2) 
+                                    + 0.03894*u(k-11) + 0.0343*u(k-12);
+        e(k) = y_zad(k)-y(k);
+        
+        ...
+    end
+\end{verbatim}
+
+\noindent
+W przypadku regulatora DMC obliczanie wartości sygnału sterującego $u$ wygląda tak jak na przytoczonym wcześniej prawie regulacji. Na początku przesuwam wszystkie poprzednie przyrosty sterowania $\Delta u$ w wektorze przechowującym te wartości:
+\begin{verbatim}
+    d_upk(2:D-1) = d_upk(1:D-2);
+\end{verbatim}
+
+\noindent
+Następnie obliczam przyrost sygnału sterującego $\Delta u$ oraz zapisują go do wektora zapisującego te przerosty:
+\begin{verbatim}
+    d_uk = ke*e(k) - ku*d_upk';
+    d_upk(1) = d_uk;
+\end{verbatim}
+
+\noindent
+Na końcu obliczam nową wartość sygnału sterującgo $u$:
+\begin{verbatim}
+    u(k) = u(k-1) + d_uk;
+\end{verbatim}
+
+\noindent
+Podsumowując, petla symulacji przedstawia się jak poniżej:
+\begin{verbatim}
+    for k = 13:kk
+        y(k) = 1.66473*y(k-1) - 0.68628*y(k-2) 
+                                    + 0.03894*u(k-11) + 0.0343*u(k-12);
+        e(k) = y_zad(k)-y(k);
+        
+        d_upk(2:D-1) = d_upk(1:D-2);
+        d_uk = ke*e(k) - ku*d_upk';
+        d_upk(1) = d_uk;
+        u(k) = u(k-1) + d_uk;
+    end
+\end{verbatim}
+
+\noindent
+Reszta kodu w pliku zajmuje się wygenerowaniem oraz zapisaniem wykresu obrazującym działanie regulatora. Nie ma to związku z samym algorytmem dlatego pomijam ten fragment. \\
+
+\noindent
+W ten sposób napisałem program pozwalający zasymulować działanie algorytmu DMC w wersji analitycznej, bez ograniczeń. W następnym zadaniu użyję go przy poszukiwaniu odpowiednich parametrów regulatora.
+
+
+
 \end{document}
 
