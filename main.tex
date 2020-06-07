@@ -294,7 +294,7 @@ Na tej podstawie mogę wyliczyć parametry regulatora:
     T_i & = 0,5T_k = 0,5 \cdot 20 = 10 \\
     T_d & = 0,12T_k = 0,12 \cdot 20 = 2,4
 \end{align*}
-Mogę także wyznaczyć wartości paremetrów dyskretnego regulatora PID definiowanego poprzez wzory:
+Mogę także wyznaczyć wartości parametrów dyskretnego regulatora PID definiowanego poprzez wzory:
 \begin{align*}
     r_2 & = \frac{KT_d}{T} = \frac{0,405 \cdot 2,4}{0,5} = 1,944 \\
     r_1 & = K \left( \frac{T}{2T_i}-2\frac{T_d}{T}-1 \right) = 0,405 \cdot (0,025 - 9,6 - 1) = -4,2829 \\
@@ -478,7 +478,7 @@ Potrzebna będzie także macierz dynamiczna $M$ o wymiarowości $N \times N_u$ i
         s_1 & 0 & \dots & 0 \\
         s_2 & s_1 & \dots & 0 \\
         \vdots & \vdots & \ddots & \vdots \\
-        s_N & s_{N-1} & \dots & s_{N+-N_u+1} \\
+        s_N & s_{N-1} & \dots & s_{N-N_u+1} \\
     \end{bmatrix}
 \end{equation*}
 
@@ -557,7 +557,7 @@ W przypadku regulatora DMC obliczanie wartości sygnału sterującego $u$ wyglą
 \end{verbatim}
 
 \noindent
-Następnie obliczam przyrost sygnału sterującego $\Delta u$ oraz zapisują go do wektora zapisującego te przerosty:
+Następnie obliczam przyrost sygnału sterującego $\Delta u$ oraz zapisuję go do wektora przechowującego te przyrosty:
 \begin{verbatim}
     d_uk = ke*e(k) - ku*d_upk';
     d_upk(1) = d_uk;
@@ -590,6 +590,451 @@ Reszta kodu w pliku zajmuje się wygenerowaniem oraz zapisaniem wykresu obrazuj�
 \noindent
 W ten sposób napisałem program pozwalający zasymulować działanie algorytmu DMC w wersji analitycznej, bez ograniczeń. W następnym zadaniu użyję go przy poszukiwaniu odpowiednich parametrów regulatora.
 
+
+
+\section*{Zadanie 5}
+W ramach tego zadania dobiorę parametry algorytmu DMC na podstawie przeprowadzonych odpowiednio symulacji.
+
+\section*{a)}
+Na początku określę horyzont dynamiki $D$. Wyznaczanie zaczynam dla $\lambda = 1$ oraz założenia, że długości horyzontów predykcji i sterowania są takie same jak horyzont dynamiki ($N_u = N = D$). \\
+
+\noindent
+Sprawdzam po jakiej ilości chwil dyskretnych odpowiedzi skokowej obiektu wartość wyjścia się stabilizuje. Na tej podstawie ustalę wartość horyzontu. Odpowiedź skokowa wygląda jak poniżej:
+\begin{center}
+    \includegraphics[width=\textwidth]{STP_projekt2_zad1.png}
+\end{center}
+Jak można zauważyć na wykresie, wartość odpowiedzi skokowej stabilizuj się mniej po 40 sekundach, co odpowiada 80 chwilom dyskretnym (ponieważ $T_p = 0,5s$). Sprawdzam więc jak przedstawia się wyjście obiektu dla takiej wartości horyzontu dynamiki (wykres na następnej stronie).
+
+\clearpage \noindent
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_a_Dn80.png}
+\end{center}
+
+\noindent
+Dla pewności sprawdzę także inne wartości horyzontu dynamiki. Na początku większa wartość $D = 90$:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_a_Dn90.png}
+\end{center}
+
+\noindent
+Wyjście obiektu jest w zasadzie identyczne, także nie trzeba zwiększać horyzontu dynamiki. Sprawdzę jeszcze mniejszy horyzont $D = 70$:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_a_Dn70.png}
+\end{center}
+\noindent
+Na powyższym wykresie można zauważyć, że w okolicy $k \approx 90$ występują pewne niezamierzone zakłócenia/regulacji. Stąd, można wysunąć wniosek, że $D = 70$ jest zbyt niskim horyzontem dynamiki. \\
+
+\noindent
+Ostatecznie, dowodzi to, że horyzont $D=80$ jest odpowiednim horyzontem dynamiki dla tego modelu.
+
+
+\section*{b)}
+W tym podpunkcie skrócę horyzont predykcji do minimalnej wielkości, która dalej pozwala na efektywną regulację (przy założeniu, że $N_u = N$). Zaczynam więc od $N=70$ - wykres został przedstawiony na następnej stronie.
+
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N70.png}
+\end{center}
+
+\noindent
+Jakość regulacji jest taka sama, zmniejszam zatem wartość horyzontu predykcji:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N60.png}
+\end{center}
+
+\clearpage \noindent
+Jakość dalej jest dobra, zmniejszam zatem dalej:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N50.png}
+\end{center}
+
+\noindent
+Podobna sytuacja, zmniejszam dalej:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N40.png}
+\end{center}
+
+\clearpage \noindent
+Regulacja dalej jest bardzo dobra, zmniejszam zatem horyzont o większą wartość:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N20.png}
+\end{center}
+
+\noindent
+Zmniejszam dalej:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N15.png}
+\end{center}
+
+\clearpage \noindent
+Dla $N=15$ można zauważyć już wyraźny spade jakości regulacji. Sprawdzam zatem większe horyzonty:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N16.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N17.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_b_N18.png}
+\end{center}
+
+\noindent
+Dla $N = 18$ regulacja jest już w zasadzie taka sama jak dla $N=17$. Z drugiej strony między $N=17$, a $N=16$ można zauważyć minimalną różnicę na korzyść horyzontu predykcji $N=17$. W związku z tym tę wartość horyzontu predykcji uznaję za ostateczną. \\
+
+\noindent
+Póki co, zebrano takie wartości parametrów:
+\[D = 80\]
+\[N = 17\]
+
+
+\section*{c)}
+Teraz sprawdzę wpływ horyzontu sterowania $N_u$ na jakość regulacji. Następnie wybiorę najlepszą wartość, możliwie jak najmniejszą (mniejszy horyzont sterowania oznacza mniejszą liczbę obliczeń). \\
+
+\noindent
+Kolejne wykresy zostały przedstawione na kolejnych stronach.
+
+\clearpage \noindent
+Zacznę od horyzontu $N_u = 16$, czyli o 1 mniejszy od $N$:
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_c_Nu16.png}
+\end{center}
+
+\noindent
+Jakość regulacji jest taka sama jak dla $N_u = 17$, sprawdzam więc mniejsze horyzonty: $N_u = 15, 14, 13$ :
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_c_Nu15.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_c_Nu14.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.96\textwidth]{STP_projekt2_zad5_c_Nu13.png}
+\end{center}
+
+\clearpage \noindent
+Jak można na powyższych wykresach zobaczyć, jakość regulacji jest cały czas taka sama. Dlatego sprawdzę horyzont sterowania od drugiej strony, zaczynając od $N_u = 1$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_c_Nu1.png}
+\end{center}
+
+\noindent
+Dla $N_u = 1$ regulator działa w sposób niestabilny. Sprawdzam zatem kolejne stopnie $N_u = 2, 3, 4$: 
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_c_Nu2.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_c_Nu3.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_c_Nu4.png}
+\end{center}
+
+\noindent
+Jak można zauważyć, dla $N_u = 2, 3, 4$ regulacja działa w zasadzie tak samo dobrze, na wykresie nie widać znaczących różnic. W związku z tym za najlepszy horyzont sterowania można uznać $N_u = 2$. Działa on tak samo jak wyższe stopnie, a wymaga najmniejszej mocy obliczeniowej. \\
+
+\noindent
+Stąd, zebrane póki co parametry regulatora przedstawiają sie jak poniżej:
+\[D = 80\]
+\[N = 17\]
+\[N_u = 2\]
+
+
+\section*{d)}
+Na sam koniec sprawdzę wpływ współczynnika $\lambda$ na jakość regulacji. Wcześniej przedstawione wykresy obrazowały działanie regulatora dla $\lambda = 1$. Dla późniejszego porównania, przedstawiam trajektorię wyjścia obiektu dla $\lambda = 1$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_d_lambda1.png}
+\end{center}
+Jak widać, zadane wyjście jest osiągane bardzo szybko, w około 30-40 chwil dyskretnych $k$. Problemem może być jednak występujące przeregulowanie. Dodatkowo, sygnał sterujący jest dosyć "poszarpany" oraz jego wartość na początku bardzo szybko wzrasta (co może być nierealizowalne fizycznie). \\
+
+\noindent
+Sprawdzę zatem inne wartości parametry $\lambda$, aby sprawdzić jaka wartość będzie odpowiednia dla różnych wymagań.
+
+\clearpage \noindent
+Sprawdzę na początku wartości niewiele wyższe od 1, dokładniej $\lambda = 2,3,4,5$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_d_lambda2.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_d_lambda3.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_d_lambda4.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad5_d_lambda5.png}
+\end{center}
+
+\noindent
+Wykresy zmieniają się względnie wolno, zatem teraz przedstawię większą ilość wykresów dla wyższych wartości współczynnika $\lambda$. \\
+
+\noindent
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda10.png}
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda20.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda30.png} 
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda40.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda50.png} 
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda60.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda70.png} 
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda80.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda120.png} 
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda160.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda200.png} 
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad5_d_lambda240.png} \\
+
+\noindent
+Na podstawie powyższych wykresów można określić główne zmiany w działaniu regulatora wraz ze wzrostem wartości współczynnika $\lambda$:
+\begin{itemize}
+  \item "Przesunięcie" wykresu w prawą stroną. Moment osiągnięcia zadanego wyjścia następuje później, co oznacza, że regulacja jest wolniejsza.
+  \item Wygładzenie trajektorii wyjścia oraz sygnału sterującego. Zmiany są łagodniejsze, mniej gwałtowne. W przypadku $\lambda \in <1, 20>$ na początku widać gwałtowny skok sygnału sterującego, dla większych wartości trajektoria się wygładza.
+  \item Na początku następuje wzrost przeregulowania, ale przy większych wartościach $\lambda$ sytuacja się odwraca. Nawet do całkowitego wyeliminowania przeregulowania dla $\lambda = 240$.
+\end{itemize}
+
+\noindent
+Podsumowując, wybranie parametru $\lambda$ będzie zależeć od warunków w jakich mamy przeprowadzać regulację. Jeżeli przeregulowanie jest dozwolone, a szybki wzrost wartości sygnału sterującego nie jest problemem, to najlepszym wyborem będzie $\lambda = 2$ (wiem, że dla $\lambda = 1$ przeregulowanie jest mniejsze, ale wybrałem $\lambda = 2$, ponieważ nie występują wtedy niepokojące szarpania sygnałem sterującym widoczne na wykresie). \\
+
+\noindent
+Jeżeli jednak nie możemy sobie pozwolić na przeregulowanie oraz gwałtowne zmiany sygnału sterującego, należy wybrać $\lambda = 240$. Czas osiągnięcia wartości zadanej jest dłuższy, ale przejście między wartościami jest bardzo płynne.
+
+
+\section*{Zadanie 6 - porównanie algorytmów}
+Na sam koniec porównam jakość regulacji obu algorytmów oraz wyznaczę ich obszary stabilności. \\
+
+\noindent
+Dzałanie algorytmów porównałem używając dostrojonych dyskretnych wersji algorytmów. Dla algorytmu PID parametry są równe:
+\begin{align*}
+    K_r & = 0,3402 \\
+    T_i & = 10 \\
+    T_d & = 2,4 
+\end{align*}
+\noindent
+a dla algorytmu DMC:
+\begin{align*}
+    D & = 80 \\
+    N & = 17 \\
+    N_u & = 2 \\
+    \lambda & = 2
+\end{align*}
+
+\noindent
+Porównanie działanie algorytmów przedstawia się jak poniżej: \\ \\
+\includegraphics[width=\textwidth]{STP_projekt2_zad6_porownanie.png}
+
+\clearpage \noindent
+Ważne dla porównania będą także przebiegi sygnału sterującego:\\
+\includegraphics[width=\textwidth]{STP_projekt2_zad6_porownanie_u.png}
+
+\noindent
+Na podstawie powyższych przebiegów można sformułować poniższe wnioski:
+\begin{itemize}
+    \item W początkowej fazie regulacji przebiegi wyjścia $y$ wyglądają bardzo podobnie. Tak samo jest z widocznym przeregulowaniem. Różnica pojawia się dopiero później, dla algorytmu DMC wyjście prawie od razu stabilizuje się na zadanej wartości. W przypadku algorytmu PID występują jeszcze przez jakiś czas oscylacje, by osiągnąć stabilność dopiero po dłuższej chwili.
+    \item Sygnał sterujący w przypadku algorytmu PID bardzo gwałtowanie "skacze" na samym początku regulacji. Dla algorytmu DMC przebieg sygnału sterującego jest dużo bardziej łagodny, różnice między kolejnymi wartościami sygnału są względnie małe.
+    \item Ogólny czas regulacji jest dla algorytmu DMC jest dużo krótszy - o wiele szybciej wyjście obiektu stabilizuje się na wartości zadanej.
+\end{itemize}
+
+\noindent
+Stąd, ogólnie można wysunąć wniosek, że algorytm DMC jest zdecydowanie lepszy w regulacji rozważanego obiektu. Regulacja jest dużo szybsza, a sygnał sterujący przyjmuje łatwiejszą do zrealizowania fizycznego postać.
+
+\clearpage
+
+\section*{Zadanie 6 - wyznaczenie obszarów stabilności}
+Wyznaczę teraz obszary stabilności obu algorytmów tzn. krzywą $K_0 / K_0^{nom}$ w funkcji $T_0 / T_0^{nom}$. Jako $T_0 / T_0^{nom}$ przyjmę:
+\[
+    T_0 / T_0^{nom} = \{ 1; 1,1; 1,2; 1,3; 1,4; 1,5; 1,6; 1,7; 1,8; 1,9; 2,0 \}  
+\]
+Wyznaczę to w następujący sposób. Zastosuję wyznaczone wcześniej nastawy obu regulatorów, dla PID:
+\begin{align*}
+    K_r & = 0,3402 \\
+    T_i & = 10 \\
+    T_d & = 2,4 
+\end{align*}
+\noindent
+a dla DMC:
+\begin{align*}
+    D & = 80 \\
+    N & = 17 \\
+    N_u & = 2 \\
+    \lambda & = 2
+\end{align*}
+
+\noindent
+Przyjmuję wartości $K_0^{nom}$ oraz $T_0^{nom}$ na te podane w treści zadania:
+\[ K_0^{nom} = 3,4\]
+\[ T_0^{nom} = 5 \]
+Następnie, dla podanych stosunków $T_0 / T_0^{nom}$ będę zwiększał kolejno wartości $T_0$. Przy każdej symulacji będę cały czas korzystał z tych samych wartości współczynników. Dla każdej z wartości $T_0$ znajdę takie $K_0$ dla którego model będzie się zachowywał niestabilnie. Oznacza to osiągnięcie przebiegu niegasnących oscylacji ze stałą amplitudą (podobnie jak w metodzie Zieglera-Nicholsa). Poniżej przedstawię przykład dla pierwszej wartości $T_0$ dla obu algorytmów. \\
+
+\noindent
+Przyjęcie stałych nastawów oznacza dla algorytmu PID użycie tych samych współczynników, a dla DMC użycie macierzy $M$, $M^P$ oraz wektora $K$ wyznaczonych dla zadanego ogólnie obiektu - nie obliczam od nowa tych macierzy. \\
+
+\noindent
+Zaczynam od algorytmu PID, dla wartości stosunku $T_0 / T_0^{nom} = 1.0$. Przebiegi przedstawiono na kolejnych stronach
+
+\clearpage \noindent
+Na początku $K_0 / K_0^{nom} = 1,1$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.100.png}
+\end{center}
+
+\noindent
+Regulacja jest cały czas stabilna dlatego sprawdzam kilka następnych przebiegów: \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_pid_1.200.png}
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_pid_1.300.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_pid_1.400.png}
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_pid_1.500.png} \\
+
+\noindent
+Z każdym wzrostem stosunku $K_0 / K_0^{nom}$ regulacja jest coraz mniej stabilna. Mimo wszystko, dalej zadana wartość jest osiągana, sprawdzam więc zdecydowanie wyższe wartości $K_0 / K_0^{nom} = 1,8$ oraz $K_0 / K_0^{nom} = 1,9$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.800.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.900.png}
+\end{center}
+
+\clearpage \noindent
+Dla $K_0 / K_0^{nom} = 1,9$ regulacja jest niestabilna, sprawdzam zatem pośrednie wartości między $1,8$ a $1,9$, na początku $K_0 / K_0^{nom} = 1,85$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.850.png}
+\end{center}
+Regulacja jest stabilna więc sprawdzam wyższą wartość $K_0 / K_0^{nom} = 1,87$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.870.png}
+\end{center}
+
+\clearpage\noindent
+Regulacja jest dalej stabilna, zwiększam zatem do $K_0 / K_0^{nom} = 1,89$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.890.png}
+\end{center}
+
+\noindent
+Podobna sytuacja, sprawdzam więc $K_0 / K_0^{nom} = 1,895$:
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{STP_projekt2_zad6_pid_1.895.png}
+\end{center}
+
+\noindent
+Otrzymałem niegasnące oscylacje o stałej amplitudzie, zatem to będzie docelowa wartość. Analogiczne działania przeprowadziłem dla kolejnych wartości $T_0 / T_0^{nom}$.
+
+\clearpage \noindent
+Teraz pokażę przykładowe wyznaczanie parametru dla algorytmu DMC. Sposób wyznaczania krytycznego wzmocnienia jest podobny Dla pierwszych kilku wartości $K_0 / K_0^{nom}$ dla $T_0 / T_0^{nom} = 1,0$ przebiegi wyglądają następująco: \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_dmc_1.100.png}
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_dmc_1.200.png} \\
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_dmc_1.300.png}
+\includegraphics[width=0.5\textwidth]{STP_projekt2_zad6_dmc_1.400.png} \\
+
+\noindent
+Jak można zauważyć, wyglądają one podobnie, wzrasta tylko początkowe przeregulowanie. Sprawdzam zatem kolejne wartości $K_0 / K_0^{nom}$.:
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{STP_projekt2_zad6_dmc_1.500.png}
+\end{center}
+
+\noindent
+Otrzymywanie przebiegi są bardzo podobne, więc zwiększam wzmocnienie dużo bardziej:
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_1.800.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_2.100.png}
+\end{center}
+
+\clearpage \noindent
+Dla $K_0 / K_0^{nom} = 2,1$ regulacja jest już niestabilna. Sprawdzam więc mniejsze wartości:
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_2.000.png}
+\end{center}
+
+\noindent
+Oscylacje są gasnące, więc zwiększam:
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_2.050.png}
+\end{center}
+
+\noindent
+Postępując analogicznie dla kilku dalszych przebiegów mam:
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_2.020.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_2.010.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=0.95\textwidth]{STP_projekt2_zad6_dmc_2.012.png}
+\end{center}
+
+\noindent
+Ostatecznie dla $K_0 / K_0^{nom} = 2,012$ otrzymałem przebieg z oscylacjami o stałej amplitudzie. Uznaję więc tę wartość jako ostateczną. Analogiczne rozumowanie przeprowadziłem dla kolejnych wartości $T_0 / T_0^{nom}$. Pozwalają one na wyznaczenie obszaru stabilności algorytmu DMC. \\
+
+\noindent
+Z ciekawszych zjawisk zaobserwowanych przy wyznaczaniu wzmocnień krytycznych dla algorytmu DMC można wymienić na pewno zmianę wyglądu przebiegu dla $T_0 / T_0^{nom} \geq 1,5$. Staje się on wtedy dużo bardziej "rwany", mniej regularny. Przez to bardziej niestabilny (przebieg na następnej stronie). \\
+
+\noindent
+Dodatkowo, dla $T_0 / T_0^{nom} \geq 1,6$ występuje na początku duże przeregulowanie, aby następnie przebieg się zbliżył blisko zadanej wartości. Dopiero po zbliżeniu się do wartości zadanej występują niegasnące oscylacje o stałej amplitudzie. Jest to inne zachowanie niż to zaobserwowane wcześniej gdzie układ od razu wchodzi w takie oscylacje (efekt widać na drugim rysunku na kolejnej stronie).
+
+\begin{center}
+    \includegraphics[width=\textwidth]{STP_projekt2_zad6_dmc_1.637.png}
+\end{center}
+\begin{center}
+    \includegraphics[width=\textwidth]{STP_projekt2_zad6_dmc_1.257.png}
+\end{center}
+
+
+\clearpage \noindent
+Podsumowując, zebrano poniższe dane dla obu algorytmów:
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{| c || c | c |}
+        \hline
+        $T_0 / T_0^{nom}$ & $K_0 / K_0^{nom}$ - PID & $K_0 / K_0^{nom}$ - DMC  \\
+        \hline 
+        1,0 & 1,895 & 2,012 \\
+        \hline
+        1,1 & 1,810 & 1,973 \\
+        \hline
+        1,2 & 1,733 & 1,907 \\
+        \hline
+        1,3 & 1,663 & 1,821 \\
+        \hline
+        1,4 & 1,599 & 1,728 \\
+        \hline
+        1,5 & 1,540 & 1,637 \\
+        \hline
+        1,6 & 1,483 & 1,257 \\
+        \hline
+        1,7 & 1,430 & 1,014 \\
+        \hline
+        1,8 & 1,380 & 0,867 \\
+        \hline
+        1,9 & 1,332 & 0,791 \\
+        \hline
+        2,0 & 1,286 & 0,769 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\noindent
+Porównanie tych danych na wykresie wygląda jak poniżej:
+\begin{center}
+    \includegraphics[width=\textwidth]{STP_projekt2_zad6_wykresy.png}
+\end{center}
+
+\noindent
+Jak można zauważyć na powyższym wykresie, dla początkowych wartości $T_0 / T_0^{nom}$ bliskich 1, algorytm DMC wykazuje większą tolerancję dla zadanych obiektów o większym wzmocnieniu. Sytuacj jednak się zmienia dla $T_0 / T_0^{nom} \approx 1,5$, następuje wtedy gwałtowny spadek stosunku $K_0 / K_0^{nom}$, a algorytm DMC staje się mniej stabilny od PID. Dodatkowo, dla $T_0 / T_0^{nom} > 1,7$ widać, że algorytm DMC przestaje sobie radzić nawet dla nominalnego $K_0$. Ostatecznie dla algorytmu DMC $K_0 / K_0^{nom}$ stabilizuje się na poziomie nieco poniżej $K_0 / K_0^{nom} = 0,8$. \\
+
+\noindent
+W przypadku regulatora PID wartość $K_0 / K_0^{nom}$ maleje względnie liniowo i stabilnie. Jego stabilność jest bardziej przewidywalna niż algorytmu DMC. \\
+
+\noindent
+Podsumowując, algorytm DMC osiąga lepsze rezultaty niż algorytm PID, pod warunkiem odpowiedniego nastrojenia. W przedstawionych sytuacji jest on jednak mniej stabilny kiedy charakterystyka obiektu się zmienia względem tej której miało miejsce nastrojenie regulatora. Algorytm PID mimo nieco gorszej regulacji dla dobrze dobranych nastawów, jest bardziej stabilny w sytuacji zmiennej chrakterystyki obiektu. Jego zachowanie jest także bardziej przewidywalne, co widać m.in. na wykresie przedstawiającym obszary stabilności.
+
+
+\begin{flushright}
+Dziękuję za przeczytanie \\
+Piotr Kostrzeński
+\end{flushright}
 
 
 \end{document}
